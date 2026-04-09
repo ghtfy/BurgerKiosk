@@ -14,10 +14,128 @@ namespace BurgerKiosk
     {
         private int totalCost = 0;
 
+        private readonly Control[] burgerControls;
+        private readonly Control[] optionControls;
+
         public Form1()
         {
             InitializeComponent();
+
+            burgerControls = new Control[] { rdoHamBurger, rdoBulgogiBurger, rdoChickenBurger };
+            optionControls = new Control[] { chkPotato, chkCola, chkCheese, chkSauce };
+
+            ConfigureKeyboardNavigation();
             this.Shown += Form1_Shown;
+        }
+
+        private void ConfigureKeyboardNavigation()
+        {
+            grpMenu.TabStop = true;
+            grpOption.TabStop = true;
+            grpOrder.TabStop = true;
+
+            grpMenu.TabIndex = 0;
+            grpOption.TabIndex = 1;
+            grpOrder.TabIndex = 2;
+            btnOrder.TabIndex = 3;
+            btninit.TabIndex = 4;
+
+            foreach (Control control in burgerControls)
+            {
+                control.TabStop = false;
+                control.KeyDown += MenuControl_KeyDown;
+            }
+
+            foreach (Control control in optionControls)
+            {
+                control.TabStop = false;
+                control.KeyDown += OptionControl_KeyDown;
+            }
+
+            grpMenu.Enter += grpMenu_Enter;
+            grpOption.Enter += grpOption_Enter;
+
+            btnOrder.KeyDown += Button_KeyDown;
+            btninit.KeyDown += Button_KeyDown;
+        }
+
+        private void grpMenu_Enter(object sender, EventArgs e)
+        {
+            Control target = burgerControls.FirstOrDefault(c => c is RadioButton && ((RadioButton)c).Checked) ?? burgerControls[0];
+            target.Focus();
+        }
+
+        private void grpOption_Enter(object sender, EventArgs e)
+        {
+            Control target = optionControls.FirstOrDefault(c => c is CheckBox && ((CheckBox)c).Checked) ?? optionControls[0];
+            target.Focus();
+        }
+
+        private void MenuControl_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.KeyCode == Keys.Down || e.KeyCode == Keys.Right)
+            {
+                MoveFocus(sender as Control, burgerControls, 1);
+                e.Handled = true;
+                e.SuppressKeyPress = true;
+            }
+            else if (e.KeyCode == Keys.Up || e.KeyCode == Keys.Left)
+            {
+                MoveFocus(sender as Control, burgerControls, -1);
+                e.Handled = true;
+                e.SuppressKeyPress = true;
+            }
+        }
+
+        private void OptionControl_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.KeyCode == Keys.Down || e.KeyCode == Keys.Right)
+            {
+                MoveFocus(sender as Control, optionControls, 1);
+                e.Handled = true;
+                e.SuppressKeyPress = true;
+            }
+            else if (e.KeyCode == Keys.Up || e.KeyCode == Keys.Left)
+            {
+                MoveFocus(sender as Control, optionControls, -1);
+                e.Handled = true;
+                e.SuppressKeyPress = true;
+            }
+        }
+
+        private void MoveFocus(Control current, Control[] controls, int direction)
+        {
+            if (current == null)
+            {
+                return;
+            }
+
+            int currentIndex = Array.IndexOf(controls, current);
+            if (currentIndex < 0)
+            {
+                return;
+            }
+
+            int nextIndex = (currentIndex + direction + controls.Length) % controls.Length;
+            controls[nextIndex].Focus();
+        }
+
+        private void Button_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.KeyCode != Keys.Enter)
+            {
+                return;
+            }
+
+            Button button = sender as Button;
+            if (button == null)
+            {
+                return;
+            }
+
+            button.PerformClick();
+            e.Handled = true;
+            e.SuppressKeyPress = true;
         }
 
         private void Form1_Shown(object sender, EventArgs e)
